@@ -10,6 +10,8 @@ export interface Config {
   timeoutMs: number;
 }
 
+export type TradingEnvironment = "demo" | "live";
+
 function booleanEnv(name: string, fallback: boolean): boolean {
   const value = process.env[name];
   if (value === undefined || value === "") return fallback;
@@ -24,7 +26,7 @@ function required(name: string): string {
   return value;
 }
 
-export function loadConfig(): Config {
+export function loadConfig(environment: TradingEnvironment): Config {
   const baseUrl = (process.env.OKX_BASE_URL || "https://openapi.okx.com").replace(/\/+$/, "");
   if (!baseUrl.startsWith("https://")) throw new Error("OKX_BASE_URL must use HTTPS");
 
@@ -33,12 +35,14 @@ export function loadConfig(): Config {
     throw new Error("OKX_REQUEST_TIMEOUT_MS must be an integer from 1000 to 60000");
   }
 
+  const credentialPrefix = environment === "demo" ? "OKX_DEMO" : "OKX_LIVE";
+
   return {
-    apiKey: required("OKX_API_KEY"),
-    secretKey: required("OKX_SECRET_KEY"),
-    passphrase: required("OKX_PASSPHRASE"),
+    apiKey: required(`${credentialPrefix}_API_KEY`),
+    secretKey: required(`${credentialPrefix}_SECRET_KEY`),
+    passphrase: required(`${credentialPrefix}_PASSPHRASE`),
     baseUrl,
-    demo: booleanEnv("OKX_DEMO", true),
+    demo: environment === "demo",
     liveTrading: booleanEnv("OKX_LIVE_TRADING", false),
     timeoutMs,
   };

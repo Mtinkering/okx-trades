@@ -7,6 +7,7 @@ const command = process.argv[2];
 const { values } = parseArgs({
   args: process.argv.slice(3),
   options: {
+    env: { type: "string", default: "demo" },
     instrument: { type: "string" },
     currency: { type: "string" },
     leverage: { type: "string" },
@@ -85,7 +86,7 @@ async function submitWrite(
   payload: Record<string, unknown>,
 ): Promise<void> {
   if (!values.confirm) {
-    console.log(JSON.stringify({ dryRun: true, demo: client.demo, endpoint, payload }, null, 2));
+    console.log(JSON.stringify({ dryRun: true, environment: client.demo ? "demo" : "live", endpoint, payload }, null, 2));
     console.log("\nNo request sent. Add --confirm to submit this exact operation.");
     return;
   }
@@ -93,15 +94,17 @@ async function submitWrite(
     throw new Error("Production writes are blocked. Set OKX_LIVE_TRADING=true in .env only when ready.");
   }
   const data = await client.post(endpoint, payload);
-  console.log(JSON.stringify({ demo: client.demo, data }, null, 2));
+  console.log(JSON.stringify({ environment: client.demo ? "demo" : "live", data }, null, 2));
 }
 
 function usage(): never {
   console.error(`Usage:
-  npm run balance
-  npm run set-leverage -- --instrument BTC-USDT-SWAP --leverage 3 --margin isolated [--position-side long] [--confirm]
-  npm run futures -- --instrument BTC-USDT-SWAP --margin isolated --side buy --type market --size 1 [--position-side long] [--confirm]
-  npm run margin -- --instrument BTC-USDT --margin isolated --side buy --type limit --size 0.001 --price 50000 [--confirm]`);
+  npm run balance:demo
+  npm run set-leverage:demo -- --instrument BTC-USDT-SWAP --leverage 3 --margin isolated [--confirm]
+  npm run futures:demo -- --instrument BTC-USDT-SWAP --margin isolated --side buy --type market --size 1 [--confirm]
+  npm run margin:demo -- --instrument BTC-USDT --margin isolated --side buy --type limit --size 0.001 --price 50000 [--confirm]
+
+Use --env demo|live with the base scripts, or use the :demo and :live convenience scripts.`);
   process.exitCode = 1;
   throw new Error("Unknown or missing command");
 }
@@ -109,7 +112,8 @@ function usage(): never {
 async function main(): Promise<void> {
   if (!["balance", "set-leverage", "futures", "margin"].includes(command || "")) usage();
 
-  const client = new OkxClient(loadConfig());
+  const environment = oneOf("env", values.env, ["demo", "live"] as const);
+  const client = new OkxClient(loadConfig(environment));
   if (command === "balance") {
     console.log(JSON.stringify(await client.get("/api/v5/account/balance"), null, 2));
     return;

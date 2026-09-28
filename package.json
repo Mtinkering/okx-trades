@@ -9,9 +9,17 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "npm run build && node --test dist/test/*.test.js",
     "balance": "tsx src/cli.ts balance",
+    "balance:demo": "tsx src/cli.ts balance --env demo",
+    "balance:live": "tsx src/cli.ts balance --env live",
     "set-leverage": "tsx src/cli.ts set-leverage",
+    "set-leverage:demo": "tsx src/cli.ts set-leverage --env demo",
+    "set-leverage:live": "tsx src/cli.ts set-leverage --env live",
     "futures": "tsx src/cli.ts futures",
-    "margin": "tsx src/cli.ts margin"
+    "futures:demo": "tsx src/cli.ts futures --env demo",
+    "futures:live": "tsx src/cli.ts futures --env live",
+    "margin": "tsx src/cli.ts margin",
+    "margin:demo": "tsx src/cli.ts margin --env demo",
+    "margin:live": "tsx src/cli.ts margin --env live"
   },
   "engines": {
     "node": ">=20.6"
