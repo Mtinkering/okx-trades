@@ -1,0 +1,27 @@
+{
+  "name": "okx-trading-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Small, guarded CLI for OKX perpetual futures and spot-margin orders",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "balance": "tsx src/cli.ts balance",
+    "set-leverage": "tsx src/cli.ts set-leverage",
+    "futures": "tsx src/cli.ts futures",
+    "margin": "tsx src/cli.ts margin"
+  },
+  "engines": {
+    "node": ">=20.6"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
