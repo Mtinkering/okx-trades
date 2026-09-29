@@ -39,6 +39,12 @@ function positive(name: string, value: string | undefined): string {
   return value;
 }
 
+function currencyCode(value: string): string {
+  const code = value.toUpperCase();
+  if (!/^[A-Z0-9]{2,20}$/.test(code)) throw new Error("--currency must be a valid currency code such as USDT");
+  return code;
+}
+
 function instrument(kind: "futures" | "margin"): string {
   const value = values.instrument?.toUpperCase();
   if (!value) throw new Error("--instrument is required");
@@ -62,7 +68,7 @@ function orderPayload(kind: "futures" | "margin"): Record<string, unknown> {
   };
 
   if (ordType !== "market") payload.px = positive("price", values.price);
-  if (values.currency) payload.ccy = values.currency.toUpperCase();
+  if (values.currency) payload.ccy = currencyCode(values.currency);
 
   if (kind === "futures") {
     if (values["position-side"]) {
@@ -100,6 +106,7 @@ async function submitWrite(
 function usage(): never {
   console.error(`Usage:
   npm run balance:demo
+  npm run funding:live -- --currency USDT
   npm run set-leverage:demo -- --instrument BTC-USDT-SWAP --leverage 3 --margin isolated [--confirm]
   npm run futures:demo -- --instrument BTC-USDT-SWAP --margin isolated --side buy --type market --size 1 [--confirm]
   npm run margin:demo -- --instrument BTC-USDT --margin isolated --side buy --type limit --size 0.001 --price 50000 [--confirm]
@@ -110,12 +117,18 @@ Use --env demo|live with the base scripts, or use the :demo and :live convenienc
 }
 
 async function main(): Promise<void> {
-  if (!["balance", "set-leverage", "futures", "margin"].includes(command || "")) usage();
+  if (!["balance", "funding", "set-leverage", "futures", "margin"].includes(command || "")) usage();
 
   const environment = oneOf("env", values.env, ["demo", "live"] as const);
   const client = new OkxClient(loadConfig(environment));
   if (command === "balance") {
     console.log(JSON.stringify(await client.get("/api/v5/account/balance"), null, 2));
+    return;
+  }
+
+  if (command === "funding") {
+    const query = values.currency ? `?ccy=${encodeURIComponent(currencyCode(values.currency))}` : "";
+    console.log(JSON.stringify(await client.get(`/api/v5/asset/balances${query}`), null, 2));
     return;
   }
 
@@ -125,7 +138,7 @@ async function main(): Promise<void> {
       mgnMode: oneOf("margin", values.margin, ["isolated", "cross"] as const),
     };
     if (values.instrument) payload.instId = values.instrument.toUpperCase();
-    if (values.currency) payload.ccy = values.currency.toUpperCase();
+    if (values.currency) payload.ccy = currencyCode(values.currency);
     if (!payload.instId && !payload.ccy) throw new Error("--instrument or --currency is required");
     if (values["position-side"]) {
       payload.posSide = oneOf("position-side", values["position-side"], ["long", "short"] as const);

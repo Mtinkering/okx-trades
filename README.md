@@ -27,6 +27,14 @@ Check demo authentication and balances:
 npm run balance:demo
 ```
 
+Check a live Funding Account balance, including newly deposited USDT:
+
+```bash
+npm run funding:live -- --currency USDT
+```
+
+`balance:*` reads the Trading Account through `/api/v5/account/balance`. `funding:*` reads the Funding Account through `/api/v5/asset/balances`. Omit `--currency` to return every non-zero Funding Account balance.
+
 Set isolated leverage (dry run, then demo submission):
 
 ```bash
